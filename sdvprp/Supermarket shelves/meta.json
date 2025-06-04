@@ -1,0 +1,22 @@
+{
+    "classes": [
+        {
+            "title": "Price",
+            "shape": "rectangle",
+            "color": "#F5A623",
+            "geometry_config": {},
+            "id": 10213293,
+            "hotkey": ""
+        },
+        {
+            "title": "Product",
+            "shape": "rectangle",
+            "color": "#7ED321",
+            "geometry_config": {},
+            "id": 10213294,
+            "hotkey": ""
+        }
+    ],
+    "tags": [],
+    "projectType": "images"
+}
