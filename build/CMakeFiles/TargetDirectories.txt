@@ -1,0 +1,6 @@
+C:/Users/vadim/source/repos/CourseWork/build/CMakeFiles/cw.dir
+C:/Users/vadim/source/repos/CourseWork/build/CMakeFiles/INSTALL.dir
+C:/Users/vadim/source/repos/CourseWork/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/vadim/source/repos/CourseWork/build/CMakeFiles/ZERO_CHECK.dir
+C:/Users/vadim/source/repos/CourseWork/build/sdvprp/CMakeFiles/sdvprp.dir
+C:/Users/vadim/source/repos/CourseWork/build/sdvprp/CMakeFiles/INSTALL.dir

@@ -1,0 +1,2 @@
+C:/MyApp/bin/cw.exe
+C:/MyApp/include/sdvprp/sdvprp.hpp

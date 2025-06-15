@@ -1,23 +1,33 @@
-﻿
-cmake_minimum_required(VERSION 3.20)
-
+﻿cmake_minimum_required(VERSION 3.20)
 project(CourseWork)
+
+# Базовые настройки
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "cmake")
+# Настройка выходных директорий
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG bin.dbg)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE bin.rel)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO bin.relwithdbg)
+# Поиск OpenCV
+find_package(OpenCV REQUIRED)
 
-find_package(OpenCV CONFIG REQUIRED)
+# Сообщаем о найденной версии OpenCV
+message(STATUS "Found OpenCV ${OpenCV_VERSION} at ${OpenCV_DIR}")
 
-include_directories(${OpenCV_INCLUDE_DIRS})
-find_package(nlohmann_json REQUIRED)
-add_executable(cw "cw.cpp")
-
+# Добавление поддиректории с библиотекой
 add_subdirectory(sdvprp)
-target_link_libraries(cw sdvprp)
 
+# Создание исполняемого файла
+add_executable(cw "cw.cpp")
+target_link_libraries(cw sdvprp ${OpenCV_LIBS})
+
+# Установка только исполняемого файла
+install(TARGETS cw
+    RUNTIME DESTINATION bin
+    BUNDLE DESTINATION bin
+)
+
+# Установка заголовочных файлов библиотеки (опционально)
+install(FILES sdvprp/sdvprp.hpp
+    DESTINATION include/sdvprp
+)
