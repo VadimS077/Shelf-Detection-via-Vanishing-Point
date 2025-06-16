@@ -4,15 +4,15 @@
 
 
 int main(int argc, char* argv[]) {
-   /* if (argc < 3) {
+    if (argc < 3) {
         std::cerr << "Usage: " << argv[0]
             << " path_to_image path_to_result "
             << "[lowThresh] [highThresh] [minWeight] [minLength] [mergeThreshold] [binSize]\n";
         return 1;
-    }*/
+    }
 
-    std::string imagePath = "C:\\Users\\vadim\\source\\repos\\Coursework\\101.jpg";//argv[1];
-    std::string outputPath = "C:\\Users\\vadim\\source\\repos\\Coursework\\res3.jpg";//argv[2];
+    std::string imagePath = argv[1];
+    std::string outputPath = argv[2];
 
     float lowThresh = 0.2f;
     float highThresh = 0.8f;
@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     cv::normalize(gradResult.maxGrad, normalizedGrad, 0, 1, cv::NORM_MINMAX, CV_32F);
     cv::Mat edgeMap = thresholdEdges(normalizedGrad, lowThresh, highThresh);
 
-    auto segments = followEdges(edgeMap, gradResult.gx, gradResult.gy,15);
+    auto segments = followEdges(edgeMap, gradResult.gx, gradResult.gy);
     auto horizontalSegments = filterHorizontalSegments(segments,minLength);
 
     cv::Mat visa = image.clone();
