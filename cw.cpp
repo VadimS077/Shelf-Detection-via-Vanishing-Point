@@ -1,22 +1,140 @@
 ﻿#include <sdvprp.hpp> 
+#include <nlohmann/json.hpp>
 
+void evaluateAndVisualizeShelvesByLines_OneToOne(
+    const std::string& gtJsonPath,
+    const std::string& imageName,
+    const std::vector<ShelfCandidate>& predictedShelves,
+    const cv::Mat& originalImage,
+    const std::string& outputPath,
+    float thresholdPercent = 0.1f // 10% от длины GT-линии
+) {
+    std::ifstream file(gtJsonPath);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open GT JSON: " << gtJsonPath << std::endl;
+        return;
+    }
 
+    nlohmann::json j;
+    file >> j;
+
+    const auto& regions = j[imageName]["regions"];
+    std::vector<std::pair<cv::Point2f, cv::Point2f>> gtLines;
+    for (const auto& region : regions) {
+        const auto& shape = region["shape_attributes"];
+        if (shape.contains("name") && shape["name"] == "polyline") {
+            const auto& x = shape["all_points_x"];
+            const auto& y = shape["all_points_y"];
+            if (x.size() == 2 && y.size() == 2) {
+                cv::Point2f p1(x[0].get<float>(), y[0].get<float>());
+                cv::Point2f p2(x[1].get<float>(), y[1].get<float>());
+                gtLines.emplace_back(p1, p2);
+            }
+        }
+    }
+
+    // --- Подготовка предсказаний ---
+    std::vector<int> usedPred(predictedShelves.size(), 0);
+    std::vector<bool> matchedGT(gtLines.size(), false);
+    std::vector<bool> isMatched(predictedShelves.size(), false);
+    std::vector<bool> sh(predictedShelves.size(), false);
+
+    // --- Сопоставление: каждая GT -> все подходящие кандидаты ---
+    float matchedLines = 0;
+    for (size_t i = 0; i < gtLines.size(); ++i) {
+        const auto& [g1, g2] = gtLines[i];
+        float gtLength = cv::norm(g1 - g2);
+
+        for (size_t j = 0; j < predictedShelves.size(); ++j) {
+            const auto& pred = predictedShelves[j];
+            cv::Point2f p1 = pred.leftPoint;
+            cv::Point2f p2 = pred.rightPoint;
+
+            float d1 = cv::norm(p1 - g1);
+            float d2 = cv::norm(p2 - g2);
+            float avgDist = 0.5f * (d1 + d2);
+            float relDist = avgDist / gtLength;
+
+            if (relDist <= thresholdPercent) {
+                usedPred[j]++; // Отмечаем как использованную, но продолжаем поиск
+                isMatched[j] = true;
+                matchedGT[i] = true;
+                if (usedPred[j] <= 1 && sh[j] == false) {
+                    sh[j] = true;
+
+                }
+            }
+        }
+    }
+    for (size_t i = 0; i < matchedGT.size(); ++i) {
+        if (matchedGT[i]) {
+            matchedLines++;
+        }
+    }
+    // --- Расчет метрик на уровне полок ---
+    size_t gtShelves = gtLines.size() / 2; // Предполагаем, что линии в GT парные
+    float TP = matchedLines / 2;
+    float TPR = TP / gtShelves;
+
+    float FN = static_cast<float>(gtShelves) - TP; // Пропущенные полки
+    int unmatchedPred = 0;
+    for (bool matched : isMatched) {
+        if (!matched) unmatchedPred++;
+    }
+    float FP = unmatchedPred / 2.0; // Непарные предсказанные линии считаем как половину ложной полки
+    float FPS = gtShelves > 0 ? static_cast<float>(FP / gtShelves) : 0; // Интенсивность ложных срабатываний
+
+    cv::Mat vis;
+    originalImage.copyTo(vis);
+
+    // GT (синие пунктиры)
+    for (const auto& [p1, p2] : gtLines) {
+        for (float alpha = 0; alpha <= 1.0; alpha += 0.05f) {
+            cv::Point pt = p1 + alpha * (p2 - p1);
+            cv::circle(vis, pt, 1, cv::Scalar(255, 0, 0), -1); // blue
+        }
+    }
+
+    for (size_t i = 0; i < predictedShelves.size(); ++i) {
+        const auto& pred = predictedShelves[i];
+        cv::Point p1 = pred.leftPoint;
+        cv::Point p2 = pred.rightPoint;
+        cv::Scalar color = isMatched[i] ? cv::Scalar(0, 255, 0) : cv::Scalar(0, 0, 255); // Зеленый для TP, красный для FP
+        std::string label = isMatched[i] ? "TP" : "FP";
+
+        cv::line(vis, p1, p2, color, 2);
+        cv::putText(vis, label, 0.5f * (p1 + p2), cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
+    }
+
+    cv::imwrite(outputPath, vis);
+
+    std::cout << "=== Evaluation: " << imageName << " ===\n";
+    std::cout << "GT shelves       : " << gtShelves << "\n";
+    std::cout << "Predicted lines  : " << predictedShelves.size() << "\n";
+    std::cout << "Matched lines    : " << matchedLines << "\n";
+    std::cout << "TP               : " << std::fixed << std::setprecision(1) << TP << "\n";
+    std::cout << "FN               : " << FN << "\n";
+    std::cout << "FP               : " << FP << "\n";
+    std::cout << "TPR              : " << std::setprecision(2) << TPR * 100.0f << "%\n";
+    std::cout << "FPS              : " << FPS * 100.0f << "%\n";
+    std::cout << "Saved to         : " << outputPath << "\n";
+}
 
 
 int main(int argc, char* argv[]) {
-    if (argc < 3) {
+  /*  if (argc < 3) {
         std::cerr << "Usage: " << argv[0]
             << " path_to_image path_to_result "
             << "[lowThresh] [highThresh] [minWeight] [minLength] [mergeThreshold] [binSize]\n";
         return 1;
-    }
+    }*/
 
-    std::string imagePath = argv[1];
-    std::string outputPath = argv[2];
+    std::string imagePath = "C:\\Users\\vadim\\Pictures\\100.jpg";
+    std::string outputPath = "C:\\Users\\vadim\\Pictures\\res3.jpg";
 
     float lowThresh = 0.2f;
     float highThresh = 0.8f;
-    float minWeight = 300.0f;
+    float minWeight = 310.0f;
     float minLength = 70.0f;
     float mergeThreshold = 0.015f;
     float binSize = 2.0f;
@@ -74,6 +192,9 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error: Could not save result to " << outputPath << "\n";
         return 1;
     }
+    evaluateAndVisualizeShelvesByLines_OneToOne("C:\\Users\\vadim\\Pictures\\100.json", "100.jpg", finalShelves , image,"C:\\Users\\vadim\\Pictures\\est_100.png" ,0.02f); // 1.5% от высоты
+
+
 
     return 0;
 }

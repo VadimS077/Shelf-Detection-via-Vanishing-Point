@@ -10,6 +10,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # Поиск OpenCV
 find_package(OpenCV REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 # Сообщаем о найденной версии OpenCV
 message(STATUS "Found OpenCV ${OpenCV_VERSION} at ${OpenCV_DIR}")
@@ -19,7 +20,7 @@ add_subdirectory(sdvprp)
 
 # Создание исполняемого файла
 add_executable(cw "cw.cpp")
-target_link_libraries(cw sdvprp ${OpenCV_LIBS})
+target_link_libraries(cw sdvprp ${OpenCV_LIBS} nlohmann_json::nlohmann_json)
 
 # Установка только исполняемого файла
 install(TARGETS cw

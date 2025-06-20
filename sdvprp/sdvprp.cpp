@@ -225,7 +225,6 @@ std::vector<ShelfCandidate> findShelves(const std::vector<EdgeSegment>& horizSeg
         cv::Point2f mid_small = 0.5f * (seg.points.front() + seg.points.back());
         cv::Point2f mid_full(mid_small.x * scaleX, mid_small.y * scaleY);
 
-
         cv::Point2f dir = mid_full - vp;
         if (std::abs(dir.x) < 1e-5f) continue;
 
@@ -245,7 +244,6 @@ std::vector<ShelfCandidate> findShelves(const std::vector<EdgeSegment>& horizSeg
         }
     }
 
-
     std::vector<ShelfCandidate> candidates;
     for (int i = 1; i < numBins - 1; ++i) {
         if (votes[i] > votes[i - 1] &&
@@ -259,12 +257,10 @@ std::vector<ShelfCandidate> findShelves(const std::vector<EdgeSegment>& horizSeg
         }
     }
 
-
     for (auto& cand : candidates) {
         float total_weight = 0.0f;
         float sum_y = 0.0f;
         cand.supportingSegments.clear();
-
 
         for (const auto& seg : horizSegs) {
             cv::Point2f mid_small = 0.5f * (seg.points.front() + seg.points.back());
@@ -293,14 +289,60 @@ std::vector<ShelfCandidate> findShelves(const std::vector<EdgeSegment>& horizSeg
             cand.y_mid = sum_y / total_weight;
             cand.weight = total_weight;
 
+            // Определение точек пересечения с границами изображения
+            std::vector<cv::Point2f> intersections;
             cv::Point2f dir_to_mid(midX - vp.x, cand.y_mid - vp.y);
-            float t_left = (0 - vp.x) / dir_to_mid.x;
-            float y_left = vp.y + t_left * dir_to_mid.y;
-            float t_right = (imageSize.width - 1 - vp.x) / dir_to_mid.x;
-            float y_right = vp.y + t_right * dir_to_mid.y;
 
-            cand.leftPoint = cv::Point2f(0, y_left);
-            cand.rightPoint = cv::Point2f(imageSize.width - 1, y_right);
+            // Пересечение с x=0
+            if (dir_to_mid.x != 0) {
+                float t = (0 - vp.x) / dir_to_mid.x;
+                float y = vp.y + t * dir_to_mid.y;
+                if (y >= 0 && y <= imageSize.height - 1) {
+                    intersections.push_back(cv::Point2f(0, y));
+                }
+            }
+
+            // Пересечение с x=imageSize.width-1
+            if (dir_to_mid.x != 0) {
+                float t = (imageSize.width - 1 - vp.x) / dir_to_mid.x;
+                float y = vp.y + t * dir_to_mid.y;
+                if (y >= 0 && y <= imageSize.height - 1) {
+                    intersections.push_back(cv::Point2f(imageSize.width - 1, y));
+                }
+            }
+
+            // Пересечение с y=0
+            if (dir_to_mid.y != 0) {
+                float t = (0 - vp.y) / dir_to_mid.y;
+                float x = vp.x + t * dir_to_mid.x;
+                if (x >= 0 && x <= imageSize.width - 1) {
+                    intersections.push_back(cv::Point2f(x, 0));
+                }
+            }
+
+            // Пересечение с y=imageSize.height-1
+            if (dir_to_mid.y != 0) {
+                float t = (imageSize.height - 1 - vp.y) / dir_to_mid.y;
+                float x = vp.x + t * dir_to_mid.x;
+                if (x >= 0 && x <= imageSize.width - 1) {
+                    intersections.push_back(cv::Point2f(x, imageSize.height - 1));
+                }
+            }
+
+            // Ожидаем ровно 2 пересечения
+            if (intersections.size() == 2) {
+                // Сортируем по x-координате
+                if (intersections[0].x > intersections[1].x) {
+                    std::swap(intersections[0], intersections[1]);
+                }
+                cand.leftPoint = intersections[0];
+                cand.rightPoint = intersections[1];
+            }
+            else {
+                // Запасной вариант, если что-то пошло не так
+                cand.leftPoint = cv::Point2f(0, cand.y_mid);
+                cand.rightPoint = cv::Point2f(imageSize.width - 1, cand.y_mid);
+            }
         }
     }
 
