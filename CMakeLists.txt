@@ -20,10 +20,12 @@ add_subdirectory(sdvprp)
 
 # Создание исполняемого файла
 add_executable(cw "cw.cpp")
+add_executable(est "estimate.cpp")
 target_link_libraries(cw sdvprp ${OpenCV_LIBS} nlohmann_json::nlohmann_json)
+target_link_libraries(est sdvprp ${OpenCV_LIBS} nlohmann_json::nlohmann_json)
 
 # Установка только исполняемого файла
-install(TARGETS cw
+install(TARGETS cw est
     RUNTIME DESTINATION bin
     BUNDLE DESTINATION bin
 )

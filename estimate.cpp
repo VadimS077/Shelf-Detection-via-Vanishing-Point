@@ -53,7 +53,7 @@ void evaluateAndVisualizeShelvesByLines_OneToOne(
             float relDist = avgDist / gtLength;
 
             if (relDist <= thresholdPercent) {
-                usedPred[j]++; 
+                usedPred[j]++;
                 isMatched[j] = true;
                 matchedGT[i] = true;
                 if (usedPred[j] <= 1 && sh[j] == false) {
@@ -72,13 +72,13 @@ void evaluateAndVisualizeShelvesByLines_OneToOne(
     float TP = matchedLines / 2;
     float TPR = TP / gtShelves;
 
-    float FN = static_cast<float>(gtShelves) - TP; 
+    float FN = static_cast<float>(gtShelves) - TP;
     int unmatchedPred = 0;
     for (bool matched : isMatched) {
         if (!matched) unmatchedPred++;
     }
     float FP = unmatchedPred / 2.0;
-    float FPS = gtShelves > 0 ? static_cast<float>(FP / gtShelves) : 0; 
+    float FPS = gtShelves > 0 ? static_cast<float>(FP / gtShelves) : 0;
 
     cv::Mat vis;
     originalImage.copyTo(vis);
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
     cv::Mat edgeMap = thresholdEdges(normalizedGrad, lowThresh, highThresh);
 
     auto segments = followEdges(edgeMap, gradResult.gx, gradResult.gy);
-    auto horizontalSegments = filterHorizontalSegments(segments,minLength);
+    auto horizontalSegments = filterHorizontalSegments(segments, minLength);
 
     cv::Mat visa = image.clone();
     float scaleX = static_cast<float>(image.cols) / small.cols;
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
         vpOnFullSize,
         image.size(),
         scaleX, scaleY,
-        binSize, 
+        binSize,
         minWeight
     );
 
@@ -188,6 +188,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error: Could not save result to " << outputPath << "\n";
         return 1;
     }
+    evaluateAndVisualizeShelvesByLines_OneToOne("C:\\Users\\vadim\\Pictures\\100.json", "100.jpg", finalShelves, image, "C:\\Users\\vadim\\Pictures\\est_100.png", 0.02f); // 1.5% от высоты
 
 
 
