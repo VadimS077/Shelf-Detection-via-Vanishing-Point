@@ -289,11 +289,9 @@ std::vector<ShelfCandidate> findShelves(const std::vector<EdgeSegment>& horizSeg
             cand.y_mid = sum_y / total_weight;
             cand.weight = total_weight;
 
-            // Определение точек пересечения с границами изображения
             std::vector<cv::Point2f> intersections;
             cv::Point2f dir_to_mid(midX - vp.x, cand.y_mid - vp.y);
 
-            // Пересечение с x=0
             if (dir_to_mid.x != 0) {
                 float t = (0 - vp.x) / dir_to_mid.x;
                 float y = vp.y + t * dir_to_mid.y;
@@ -302,7 +300,6 @@ std::vector<ShelfCandidate> findShelves(const std::vector<EdgeSegment>& horizSeg
                 }
             }
 
-            // Пересечение с x=imageSize.width-1
             if (dir_to_mid.x != 0) {
                 float t = (imageSize.width - 1 - vp.x) / dir_to_mid.x;
                 float y = vp.y + t * dir_to_mid.y;
@@ -311,7 +308,6 @@ std::vector<ShelfCandidate> findShelves(const std::vector<EdgeSegment>& horizSeg
                 }
             }
 
-            // Пересечение с y=0
             if (dir_to_mid.y != 0) {
                 float t = (0 - vp.y) / dir_to_mid.y;
                 float x = vp.x + t * dir_to_mid.x;
@@ -320,7 +316,6 @@ std::vector<ShelfCandidate> findShelves(const std::vector<EdgeSegment>& horizSeg
                 }
             }
 
-            // Пересечение с y=imageSize.height-1
             if (dir_to_mid.y != 0) {
                 float t = (imageSize.height - 1 - vp.y) / dir_to_mid.y;
                 float x = vp.x + t * dir_to_mid.x;
@@ -329,9 +324,7 @@ std::vector<ShelfCandidate> findShelves(const std::vector<EdgeSegment>& horizSeg
                 }
             }
 
-            // Ожидаем ровно 2 пересечения
             if (intersections.size() == 2) {
-                // Сортируем по x-координате
                 if (intersections[0].x > intersections[1].x) {
                     std::swap(intersections[0], intersections[1]);
                 }
@@ -339,7 +332,6 @@ std::vector<ShelfCandidate> findShelves(const std::vector<EdgeSegment>& horizSeg
                 cand.rightPoint = intersections[1];
             }
             else {
-                // Запасной вариант, если что-то пошло не так
                 cand.leftPoint = cv::Point2f(0, cand.y_mid);
                 cand.rightPoint = cv::Point2f(imageSize.width - 1, cand.y_mid);
             }
