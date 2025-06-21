@@ -188,7 +188,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error: Could not save result to " << outputPath << "\n";
         return 1;
     }
-    evaluate("C:\\Users\\vadim\\Pictures\\100.json", "100.jpg", finalShelves, image, "C:\\Users\\vadim\\Pictures\\est_100.png", 0.02f); // 1.5% от высоты
+    evaluate("C:\\Users\\vadim\\Pictures\\100.json", "100.jpg", finalShelves, image, "C:\\Users\\vadim\\Pictures\\est_100.png", 0.02f);
 
 
 
