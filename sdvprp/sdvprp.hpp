@@ -38,7 +38,7 @@ struct ShelfCandidate {
 };
 
 GradientResult computeColorGradient(const cv::Mat& colorImage);
-cv::Mat thresholdEdges(const cv::Mat& gradientMagnitude, float lowThresh=0.2f, float highThresh=0.8f);
+cv::Mat thresholdEdges(const cv::Mat& gradientMagnitude, float lowThresh=0.2f);
 std::vector<EdgeSegment> followEdges(const cv::Mat& edgeMap, const cv::Mat& gradX, const cv::Mat& gradY, float maxAngleDiffDeg=15.0f, float collinearityThreshold = 20.0f);
 std::vector<EdgeSegment> filterHorizontalSegments(const std::vector<EdgeSegment>& segments, float minLength = 70.0f, float maxAngleFromHorizontalDeg = 40.0f);
 cv::Point2f computeVanishingPoint(const cv::Point2f& a1, const cv::Point2f& a2,

@@ -49,14 +49,12 @@ GradientResult computeColorGradient(const cv::Mat& colorImage) {
     return { maxGrad, gx, gy };
 }
 
-cv::Mat thresholdEdges(const cv::Mat& gradientMagnitude, float lowThresh, float highThresh) {
+cv::Mat thresholdEdges(const cv::Mat& gradientMagnitude, float lowThresh) {
     cv::Mat edges;
-    cv::Mat strongEdges = gradientMagnitude > highThresh;
-    cv::Mat weakEdges = (gradientMagnitude > lowThresh) & (gradientMagnitude <= highThresh);
+    cv::Mat edge = (gradientMagnitude > lowThresh);
 
     edges = cv::Mat::zeros(gradientMagnitude.size(), CV_8U);
-    edges.setTo(100, weakEdges);
-    edges.setTo(255, strongEdges);
+    edges.setTo(100, edge);
     return edges;
 }
 std::vector<EdgeSegment> followEdges(const cv::Mat& edgeMap, const cv::Mat& gradX, const cv::Mat& gradY, float maxAngleDiffDeg, float collinearityThreshold) {

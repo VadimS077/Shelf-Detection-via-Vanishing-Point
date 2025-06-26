@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
     if (argc < 3) {
         std::cerr << "Usage: " << argv[0]
             << " path_to_image path_to_result "
-            << "[lowThresh] [highThresh] [minWeight] [minLength] [mergeThreshold] [binSize]\n";
+            << "[lowThresh] [minWeight] [minLength] [mergeThreshold] [binSize]\n";
         return 1;
     }
 
@@ -129,18 +129,16 @@ int main(int argc, char* argv[]) {
     std::string outputPath = argv[2];
 
     float lowThresh = 0.2f;
-    float highThresh = 0.8f;
     float minWeight = 310.0f;
     float minLength = 70.0f;
     float mergeThreshold = 0.015f;
     float binSize = 2.0f;
 
     if (argc > 3) lowThresh = std::stof(argv[3]);
-    if (argc > 4) highThresh = std::stof(argv[4]);
-    if (argc > 5) minWeight = std::stof(argv[5]);
-    if (argc > 6) minLength = std::stof(argv[6]);
-    if (argc > 7) mergeThreshold = std::stof(argv[7]);
-    if (argc > 8) binSize = std::stof(argv[8]);
+    if (argc > 4) minWeight = std::stof(argv[4]);
+    if (argc > 5) minLength = std::stof(argv[5]);
+    if (argc > 6) mergeThreshold = std::stof(argv[6]);
+    if (argc > 7) binSize = std::stof(argv[7]);
 
     cv::Mat image = cv::imread(imagePath);
     if (image.empty()) {
@@ -155,7 +153,7 @@ int main(int argc, char* argv[]) {
     auto gradResult = computeColorGradient(small);
     cv::Mat normalizedGrad;
     cv::normalize(gradResult.maxGrad, normalizedGrad, 0, 1, cv::NORM_MINMAX, CV_32F);
-    cv::Mat edgeMap = thresholdEdges(normalizedGrad, lowThresh, highThresh);
+    cv::Mat edgeMap = thresholdEdges(normalizedGrad, lowThresh);
 
     auto segments = followEdges(edgeMap, gradResult.gx, gradResult.gy);
     auto horizontalSegments = filterHorizontalSegments(segments, minLength);
